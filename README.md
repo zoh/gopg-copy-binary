@@ -55,3 +55,8 @@ ScanElement, ValueElement use reflection. You can use your format serialization 
 
 ## Test
 look at [how in work](_tests/raw_copy_test.go), and measure speed.
+
+## Problems
+
+- The Binary format pg.timestamp is strange, doesnt't seem like "2021-04-24 15:35:21.285612 +0000 UTC"
+- jsonb - <i>ERROR #XX000 unsupported jsonb version number 123</i>
