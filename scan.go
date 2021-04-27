@@ -65,7 +65,6 @@ func convertAssignRows(dest interface{}, col []byte) error {
 	}
 
 	if b, ok := dest.(encoding.BinaryUnmarshaler); ok {
-		fmt.Println(string(col), col)
 		return b.UnmarshalBinary(col)
 	}
 

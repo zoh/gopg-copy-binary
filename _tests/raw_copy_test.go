@@ -42,6 +42,7 @@ type attribute struct {
 	ID          int
 	UUID        uuid.UUID
 	Name        string
+	Omit        *string
 	Description string
 	Active      bool
 	JsVals      []byte `json:"js_vals"`
@@ -60,6 +61,7 @@ func TestCopyRead(t *testing.T) {
 		id 			serial,
 		uuid 		uuid,
 		name 		varchar(40) not null,
+		omit		text ,
 		description text,
 		active		boolean,
 		js_vals     jsonb,
@@ -72,11 +74,12 @@ func TestCopyRead(t *testing.T) {
 
 	// generate some data
 	_, err = tx.Exec(`insert into attributes (
-		uuid, name, description, active, js_vals
+		uuid, name, description, omit, active, js_vals
 	)
 	select
 		uuid_generate_v4(),
 		left(md5(i::text), 10),
+		md5(random()::text),
 		md5(random()::text),
 		random() > 0.5,
 		('{"firstName":"' ||  md5(random()::text) || '", "lastName":"' || md5(random()::text) ||'"}')::jsonb
@@ -88,12 +91,13 @@ func TestCopyRead(t *testing.T) {
 	defer gopg_copybinary.Duration(gopg_copybinary.Track("copy read"))
 
 	elements := make([]attribute, 0, 100000)
-	err = gopg_copybinary.CopyRead(tx, "( select id, uuid, name, description, active, js_vals, created_at::text from attributes )", func(cols [][]byte) error {
+	err = gopg_copybinary.CopyRead(tx, "( select id, uuid, name, omit, description, active, js_vals, created_at::text from attributes )", func(cols [][]byte) error {
 		var element attribute
 		if err := gopg_copybinary.ScanElement(cols,
 			&element.ID,
 			&element.UUID,
 			&element.Name,
+			&element.Omit,
 			&element.Description,
 			&element.Active,
 			&element.JsVals,
@@ -109,7 +113,7 @@ func TestCopyRead(t *testing.T) {
 
 	assert.Len(t, elements, 100000)
 
-	fmt.Println(string(elements[0].JsVals))
+	fmt.Printf("%+v \n", *elements[5].Omit)
 }
 
 func TestCopyWrite(t *testing.T) {
@@ -124,6 +128,7 @@ func TestCopyWrite(t *testing.T) {
 			id 			serial,
 			uuid 		uuid,
 			name 		varchar(40) not null,
+			omit		text,
 			description text,
 			active		boolean,
 			js_vals     jsonb,
@@ -140,6 +145,7 @@ func TestCopyWrite(t *testing.T) {
 			i,
 			uuid.New(),
 			"test",
+			"omitted text",
 			"desc",
 			i%2 == 0,
 			// []byte(`{}`),
@@ -151,7 +157,7 @@ func TestCopyWrite(t *testing.T) {
 		buffer.Write(b)
 	}
 
-	columns := strings.Split("id, uuid, name, description, active", ", ")
+	columns := strings.Split("id, uuid, name, omit, description, active", ", ")
 	err = gopg_copybinary.CopyWriteFromReader(tx, buffer, "attributes", columns)
 	assert.NoError(t, err)
 

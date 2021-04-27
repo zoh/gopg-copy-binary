@@ -39,6 +39,7 @@ func ValueElement(params ...interface{}) ([]byte, error) {
 		binary.BigEndian.PutUint32(lenFiend, uint32(len(bb)))
 		buf.Write(lenFiend)
 		buf.Write(bb)
+
 	}
 	return buf.Bytes(), nil
 }

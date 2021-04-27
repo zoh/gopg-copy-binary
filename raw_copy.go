@@ -47,7 +47,7 @@ func CopyRead(db *pg.Tx, query string, row func([][]byte) error, params ...inter
 	header := buff.Next(19)
 
 	if !bytes.HasPrefix(header, pgCopySign) {
-		return err
+		return errors.New("incorrect header signature")
 	}
 
 	// read rows
@@ -88,6 +88,10 @@ func CopyRead(db *pg.Tx, query string, row func([][]byte) error, params ...inter
 			}
 
 			s := int(binary.BigEndian.Uint32(lenFiend))
+
+			if s == 0 {
+				continue
+			}
 			field := make([]byte, s)
 
 			n, err = buff.Read(field)
@@ -96,7 +100,7 @@ func CopyRead(db *pg.Tx, query string, row func([][]byte) error, params ...inter
 			}
 			if n == 0 {
 				//chErr <- fmt.Errorf("we must be reading %d-bytes", s)
-				return err
+				return fmt.Errorf("we must be reading %d-bytes i=%d", s, i)
 			}
 			fields[i] = field
 		}
