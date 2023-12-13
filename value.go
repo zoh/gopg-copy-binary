@@ -21,7 +21,6 @@ func ValueElement(params ...interface{}) ([]byte, error) {
 		lenFiend     = make([]byte, 4) // len in bytes
 	)
 
-	buf.Reset()
 	binary.BigEndian.PutUint16(numberFields, uint16(len(params)))
 
 	// write size columns
