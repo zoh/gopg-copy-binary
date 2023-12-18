@@ -40,12 +40,7 @@ func convertAssignRows(dest interface{}, col []byte) error {
 		*d = sql.RawBytes(col[:])
 		return nil
 	case *bool:
-		if bytes.Compare(col, []byte{0x01}) == 0 {
-			// it's true
-			*d = true
-		} else {
-			*d = false
-		}
+		*d = bytes.Equal(col, []byte{0x01})
 		return nil
 
 	case *time.Time:

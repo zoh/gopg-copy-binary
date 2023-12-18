@@ -12,16 +12,15 @@ import (
 	"reflect"
 )
 
-// write count of columns
-var (
-	buf = new(bytes.Buffer)
-
-	numberFields = make([]byte, 2)
-	lenFiend     = make([]byte, 4) // len in bytes
-)
-
 func ValueElement(params ...interface{}) ([]byte, error) {
-	buf.Reset()
+	// write count of columns
+	var (
+		buf = new(bytes.Buffer)
+
+		numberFields = make([]byte, 2)
+		lenFiend     = make([]byte, 4) // len in bytes
+	)
+
 	binary.BigEndian.PutUint16(numberFields, uint16(len(params)))
 
 	// write size columns
